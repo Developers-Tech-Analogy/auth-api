@@ -4,6 +4,8 @@ import User from "./model";
 import * as bcrypt from "bcrypt";
 import config from "../../config";
 
+export const emails = await (await database()).collection("users").find().map(e=>e.email);
+
 export async function createUser(user: User): Promise<boolean> {
     try{
         const saltData = bcrypt.genSaltSync(config.salt);

@@ -6,12 +6,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const logger_1 = __importDefault(require("../../loaders/logger"));
 const controller_1 = require("./controller");
-const schema_1 = require("./schema");
+const validator_1 = require("./validator");
 const authRouter = (0, express_1.Router)();
-function handleLogin(req, res) {
-    res.status(200).json({
-        message: 'Success',
-    });
+async function handleLogin(req, res) {
+    var _a;
+    try {
+        const result = await (0, controller_1.loginUser)(req.body.email, req.body.password);
+        res.status(result.status).json({
+            message: result.message,
+            token: (_a = result.token) !== null && _a !== void 0 ? _a : '',
+        });
+    }
+    catch (e) {
+        logger_1.default.error(e);
+        res.status(e.status || 500).json({
+            message: e.message || 'Request Failed',
+        });
+    }
 }
 async function handleSignUp(req, res) {
     try {
@@ -24,44 +35,36 @@ async function handleSignUp(req, res) {
         else {
             throw {
                 status: 400,
-                message: "User could not be created"
+                message: 'User could not be created',
             };
         }
     }
     catch (e) {
         logger_1.default.error(e);
         res.status(e.status || 500).json({
-            message: e.message || "Request Failed",
+            message: e.message || 'Request Failed',
         });
     }
 }
-async function loginValidator(req, res, next) {
+async function handleGetProfile(req, res) {
     try {
-        req.body = await schema_1.loginSchema.validate(req.body, { stripUnknown: true });
-        next();
+        const token = req.headers.authorization;
+        logger_1.default.info(token);
+        const user = await (0, controller_1.getProfile)(token.substring(7, token.length));
+        res.status(200).json({
+            message: 'Success',
+            data: user,
+        });
     }
     catch (e) {
         logger_1.default.error(e);
-        res.status(422).json({
-            message: 'Validation Failed',
-            error: e.errors.map(error => error),
+        res.status(e.status || 500).json({
+            message: e.message || 'Request Failed',
         });
     }
 }
-async function signUpValidator(req, res, next) {
-    try {
-        req.body = await schema_1.signUpSchema.validate(req.body, { stripUnknown: true });
-        next();
-    }
-    catch (e) {
-        logger_1.default.error(e);
-        res.status(422).json({
-            message: 'Validation Failed',
-            error: e.errors.map(error => error),
-        });
-    }
-}
-authRouter.post('/login', loginValidator, handleLogin);
-authRouter.post('/signUp', signUpValidator, handleSignUp);
+authRouter.post('/login', validator_1.loginValidator, handleLogin);
+authRouter.post('/signUp', validator_1.signUpValidator, handleSignUp);
+authRouter.get('/', validator_1.getProfileValidator, handleGetProfile);
 exports.default = authRouter;
 //# sourceMappingURL=router.js.map

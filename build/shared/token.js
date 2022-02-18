@@ -18,22 +18,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProfileSchema = exports.signUpSchema = exports.loginSchema = void 0;
-const yup = __importStar(require("yup"));
-const login = {
-    email: yup.string().email().required(),
-    password: yup.string().min(6).required(),
-};
-const signUp = {
-    name: yup.string().required(),
-    email: yup.string().email().required(),
-    password: yup.string().min(6).required(),
-};
-const getProfile = {
-    authorization: yup.string().required()
-};
-exports.loginSchema = new yup.ObjectSchema(login);
-exports.signUpSchema = new yup.ObjectSchema(signUp);
-exports.getProfileSchema = new yup.ObjectSchema(getProfile);
-//# sourceMappingURL=schema.js.map
+exports.verifyToken = exports.createToken = void 0;
+const jwt = __importStar(require("jsonwebtoken"));
+const config_1 = __importDefault(require("../config"));
+const createToken = (data) => jwt.sign(data, config_1.default.jwtSecret, { expiresIn: "30 seconds" });
+exports.createToken = createToken;
+const verifyToken = (token) => jwt.verify(token, config_1.default.jwtSecret);
+exports.verifyToken = verifyToken;
+//# sourceMappingURL=token.js.map
